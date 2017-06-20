@@ -29,9 +29,21 @@ def gradcheck_naive(f, x):
         # before calling f(x) each time. This will make it possible
         # to test cost functions with built in randomness later.
 
-        ### YOUR CODE HERE:
-        raise NotImplementedError
-        ### END YOUR CODE
+        temp_x = x.astype('float64')
+        #print type(temp_x)
+        #print "temp_x shape is", temp_x.shape
+        temp_x[ix] += h
+        random.setstate(rndstate)
+        #print "temp_x second shape is", temp_x.shape
+        pos, _ = f(temp_x)
+        #print pos
+
+        # temp_x = x
+        temp_x[ix] -= 2*h
+        random.setstate(rndstate)
+        neg, _ = f(temp_x)
+        numgrad = (pos - neg)/ (2*h)
+        #print "numgrad shape is", numgrad.shape
 
         # Compare gradients
         reldiff = abs(numgrad - grad[ix]) / max(1, abs(numgrad), abs(grad[ix]))
@@ -52,7 +64,7 @@ def sanity_check():
     Some basic sanity checks.
     """
     quad = lambda x: (np.sum(x ** 2), x * 2)
-
+    print quad(np.array([5,6]))
     print "Running sanity checks..."
     gradcheck_naive(quad, np.array(123.456))      # scalar test
     gradcheck_naive(quad, np.random.randn(3,))    # 1-D test
@@ -75,4 +87,4 @@ def your_sanity_checks():
 
 if __name__ == "__main__":
     sanity_check()
-    your_sanity_checks()
+    # your_sanity_checks()
