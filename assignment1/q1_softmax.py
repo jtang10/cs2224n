@@ -36,7 +36,7 @@ def softmax(x):
         x = exp / sum_exp
     else:
         # Vector
-        exp = np.exp(x)
+        exp = np.exp(x - np.max(x))
         x = exp / np.sum(exp)
 
     assert x.shape == orig_shape
@@ -49,7 +49,7 @@ def test_softmax_basic():
     Warning: these are not exhaustive.
     """
     print "Running basic tests..."
-    test1 = softmax(np.array([1,2]))
+    test1 = softmax(np.array([1001,1002]))
     print test1
     ans1 = np.array([0.26894142,  0.73105858])
     assert np.allclose(test1, ans1, rtol=1e-05, atol=1e-06)
