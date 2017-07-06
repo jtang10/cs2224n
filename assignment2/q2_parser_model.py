@@ -1,4 +1,4 @@
-``import os
+import os
 import time
 import tensorflow as tf
 import cPickle
@@ -108,7 +108,7 @@ class ParserModel(Model):
             embeddings: tf.Tensor of shape (None, n_features*embed_size)
         """
         ### YOUR CODE HERE
-        embedding = tf.constant(self.pretrained_embeddings)
+        embedding = tf.Variable(self.pretrained_embeddings)
         embeddings = tf.nn.embedding_lookup(embedding, self.input_placeholder)
         embeddings = tf.reshape(embeddings, [-1, self.config.n_features * self.config.embed_size])
         ### END YOUR CODE
@@ -141,15 +141,21 @@ class ParserModel(Model):
 
         x = self.add_embedding()
         ### YOUR CODE HERE
-        xavier = xavier_weight_init
+        xavier = xavier_weight_init()
         W = xavier((self.config.n_features * self.config.embed_size, self.config.hidden_size))
-        b1 = tf.Variable(tf.zeros((self.config.hidden_size, )))
-        U = xavier((self.config.hidden_size, self.config.n_classes))
-        b2 = tf.Variable(tf.zeros((self.config.n_classes, )))
+        b1 = tf.Variable(tf.random_uniform((self.config.hidden_size, )))
+        # U = xavier((self.config.hidden_size, self.config.n_classes))
+        # b2 = tf.Variable(tf.random_uniform((self.config.n_classes, )))
+        U = xavier((self.config.hidden_size, self.config.hidden_size))
+        b2 = tf.Variable(tf.random_uniform((self.config.hidden_size, )))
+        U2 = xavier((self.config.hidden_size, self.config.n_classes))
+        b3 = tf.Variable(tf.random_uniform((self.config.n_classes, )))
 
         h = tf.nn.relu(tf.matmul(x, W) + b1)
         h_drop = tf.nn.dropout(h, self.dropout_placeholder)
-        pred = tf.matmul(h_drop, U) + b2
+        pred_h = tf.nn.relu(tf.matmul(h_drop, U) + b2)
+        pred_h_drop = tf.nn.dropout(pred_h, self.dropout_placeholder)
+        pred = tf.matmul(pred_h_drop, U2) + b3
         ### END YOUR CODE
         return pred
 
@@ -193,6 +199,8 @@ class ParserModel(Model):
             train_op: The Op for training.
         """
         ### YOUR CODE HERE
+        optimizer = tf.train.AdamOptimizer(self.config.lr)
+        train_op = optimizer.minimize(loss)
         ### END YOUR CODE
         return train_op
 
@@ -231,7 +239,7 @@ class ParserModel(Model):
         self.build()
 
 
-def main(debug=True):
+def main(debug=False):
     print 80 * "="
     print "INITIALIZING"
     print 80 * "="
